@@ -2,8 +2,8 @@
  * Configuração do Backend (Render ou Localhost)
  */
 const DEFAULT_LOCAL_API = "http://localhost:8000";
-// Substitua este URL após criar o serviço no Render
-const DEFAULT_PROD_API = "https://dashboard-vendas-backend.onrender.com";
+// URL ativo do Backend no Render
+const DEFAULT_PROD_API = "https://projecto-1-inv5.onrender.com";
 
 function getApiBaseUrl() {
   const savedUrl = localStorage.getItem("API_URL");
