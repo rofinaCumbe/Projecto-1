@@ -1,7 +1,9 @@
-# Ignorar arquivos de backend Python no Vercel (apenas o frontend estático é publicado)
+# Ignorar arquivos de backend Python no Vercel
 *.py
 backend/
 Procfile
 render.yaml
 requirements-local.txt
 __pycache__/
+node_modules/
+.git/

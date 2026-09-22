@@ -1,0 +1,6 @@
+{
+  "name": "dashboard-vendas-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dashboard de Vendas - Frontend estático para deploy no Vercel"
+}
