@@ -1,14 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
+  "buildCommand": null,
+  "outputDirectory": "frontend",
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/frontend/index.html"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "destination": "/$1"
     }
   ]
 }

@@ -1,0 +1,9 @@
+# Ignorar arquivos Python e de backend no Vercel (apenas o frontend estático é publicado)
+app.py
+analise_vendas.py
+dataset.py
+backend/
+requirements.txt
+Procfile
+render.yaml
+*.py
