@@ -5,7 +5,8 @@ echo =========================================================
 echo       INICIANDO O BACKEND FASTAPI (PORTA 8000)
 echo =========================================================
 echo.
-echo Documentação interativa (Swagger UI): http://localhost:8000/docs
+echo Documentacao interativa (Swagger UI): http://localhost:8000/docs
+echo Para instalar as dependencias execute: pip install -r requirements-local.txt
 echo Pressione Ctrl+C na janela para encerrar quando terminar.
 echo.
 
