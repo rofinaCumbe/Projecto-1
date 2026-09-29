@@ -9,8 +9,17 @@ from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from pathlib import Path
+from dotenv import load_dotenv
+from pymongo import MongoClient
 import pandas as pd
 import os
+
+# Carregar variáveis de ambiente do ficheiro .env
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
+# Configuração MongoDB
+MONGODB_URI = os.getenv("MONGODB_URI")
+MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "rofsalesdb")
 
 app = FastAPI(
     title="Dashboard de Vendas API",
@@ -95,6 +104,25 @@ def home():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+@app.get("/api/db-status")
+def db_status():
+    """Verifica a conexão com o MongoDB Atlas."""
+    try:
+        if not MONGODB_URI:
+            return {"status": "não configurado", "mensagem": "MONGODB_URI não definida nas variáveis de ambiente."}
+        client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+        client.admin.command("ping")
+        db = client[MONGODB_DB_NAME]
+        colecoes = db.list_collection_names()
+        client.close()
+        return {
+            "status": "conectado",
+            "base_de_dados": MONGODB_DB_NAME,
+            "colecoes": colecoes
+        }
+    except Exception as e:
+        return {"status": "erro", "mensagem": str(e)}
 
 @app.get("/api/filtros")
 def obter_filtros():
