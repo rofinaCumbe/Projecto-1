@@ -3,7 +3,7 @@ API REST de Vendas em FastAPI para deploy no Render.
 Processamento de dados com Pandas, cálculo de KPIs e persistência em CSV.
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel, Field
@@ -11,8 +11,11 @@ from typing import List, Optional
 from pathlib import Path
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from datetime import datetime, timedelta
 import pandas as pd
 import os
+import hashlib
+import secrets
 
 # Carregar variáveis de ambiente do ficheiro .env
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -20,6 +23,17 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 # Configuração MongoDB
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "rofsalesdb")
+
+# Administrador padrão (credenciais iniciais)
+ADMIN_USERS = {
+    "admin@dashboard.co.mz": {
+        "nome": "Administrador",
+        "password_hash": hashlib.sha256("admin123".encode()).hexdigest()
+    }
+}
+
+# Tokens de sessão ativos
+ACTIVE_TOKENS = {}
 
 app = FastAPI(
     title="Dashboard de Vendas API",
@@ -92,6 +106,23 @@ class NovaVenda(BaseModel):
     preco_unitario: float = Field(..., gt=0)
     valor_venda: Optional[float] = None
 
+class LoginRequest(BaseModel):
+    email: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
+
+def gerar_token():
+    return secrets.token_hex(32)
+
+def verificar_token(token: str) -> dict:
+    """Verifica se o token é válido e não expirou."""
+    if token in ACTIVE_TOKENS:
+        dados = ACTIVE_TOKENS[token]
+        if datetime.now() < dados["expira_em"]:
+            return dados
+        else:
+            del ACTIVE_TOKENS[token]
+    return None
+
 @app.get("/")
 def home():
     return {
@@ -104,6 +135,44 @@ def home():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+@app.post("/api/login")
+def fazer_login(dados: LoginRequest):
+    """Autenticação de administrador."""
+    email = dados.email.strip().lower()
+    password_hash = hashlib.sha256(dados.password.encode()).hexdigest()
+    
+    user = ADMIN_USERS.get(email)
+    if not user or user["password_hash"] != password_hash:
+        raise HTTPException(status_code=401, detail="Email ou password incorretos.")
+    
+    token = gerar_token()
+    ACTIVE_TOKENS[token] = {
+        "email": email,
+        "nome": user["nome"],
+        "expira_em": datetime.now() + timedelta(hours=8)
+    }
+    
+    return {
+        "token": token,
+        "nome": user["nome"],
+        "mensagem": "Login efetuado com sucesso!"
+    }
+
+@app.get("/api/verificar-token")
+def verificar_sessao(token: str = Query(...)):
+    """Verifica se o token da sessão ainda é válido."""
+    dados = verificar_token(token)
+    if not dados:
+        raise HTTPException(status_code=401, detail="Sessão expirada ou inválida.")
+    return {"valido": True, "nome": dados["nome"], "email": dados["email"]}
+
+@app.post("/api/logout")
+def fazer_logout(token: str = Query(...)):
+    """Encerra a sessão do administrador."""
+    if token in ACTIVE_TOKENS:
+        del ACTIVE_TOKENS[token]
+    return {"mensagem": "Sessão encerrada com sucesso."}
 
 @app.get("/api/db-status")
 def db_status():

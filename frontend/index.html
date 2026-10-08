@@ -16,11 +16,14 @@
         <span class="brand-icon">📊</span>
         <div>
           <h1>Dashboard de Vendas</h1>
-          <p>Acompanhamento de faturamento, vendas e volume por região (Moçambique)</p>
+          <p>Acompanhamento de vendas, faturamento por região e volume de produtos. <span id="welcome-user"></span></p>
         </div>
       </div>
 
       <div class="header-actions">
+        <button class="btn btn-outline" onclick="fazerLogout()" title="Terminar Sessão">
+          🚪 Sair
+        </button>
         <!-- Indicador de Status do Backend -->
         <button id="btn-status" class="status-pill" onclick="abrirModalConfig()" title="Clique para configurar o URL do Backend no Render">
           <span id="status-dot" class="status-dot"></span>
@@ -267,5 +270,13 @@
   <!-- Scripts -->
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script>
+    // Exibir nome do utilizador logado
+    const nomeUser = localStorage.getItem('auth_user');
+    if (nomeUser) {
+      const el = document.getElementById('welcome-user');
+      if (el) el.textContent = '| Olá, ' + nomeUser + '!';
+    }
+  </script>
 </body>
 </html>

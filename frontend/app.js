@@ -1,3 +1,28 @@
+// ==============================================================================
+// VERIFICAÇÃO DE AUTENTICAÇÃO
+// ==============================================================================
+function verificarAutenticacao() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    window.location.href = 'login.html';
+    return false;
+  }
+  return true;
+}
+
+function obterTokenAuth() {
+  return localStorage.getItem('auth_token') || '';
+}
+
+function fazerLogout() {
+  const apiUrl = getApiBaseUrl();
+  const token = obterTokenAuth();
+  fetch(`${apiUrl}/api/logout?token=${token}`, { method: 'POST' }).catch(() => {});
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('auth_user');
+  window.location.href = 'login.html';
+}
+
 /**
  * Lógica da Dashboard no Frontend
  * Integração com FastAPI (Render), Plotly.js e Gestão de Estado
@@ -455,6 +480,24 @@ function restaurarLocalhost() {
 // INICIALIZAÇÃO
 // ==============================================================================
 async function inicializarApp() {
+  if (!verificarAutenticacao()) return;
+  
+  // Verificar token no backend
+  const apiUrl = getApiBaseUrl();
+  const token = obterTokenAuth();
+  try {
+    const res = await fetch(`${apiUrl}/api/verificar-token?token=${token}`);
+    if (!res.ok) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      window.location.href = 'login.html';
+      return;
+    }
+  } catch (err) {
+    // Se não conseguir verificar, continua (pode ser offline)
+    console.warn('Não foi possível verificar o token:', err);
+  }
+  
   const online = await verificarConexaoBackend();
   if (online) {
     await carregarFiltros();
