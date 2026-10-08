@@ -28,6 +28,22 @@ MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "rofsalesdb")
 mongo_client = None
 mongo_db = None
 
+# Fallback: utilizadores em memória (usado quando MongoDB não está acessível)
+ADMIN_USERS_FALLBACK = {
+    "admin@rofsales.co.mz": {
+        "email": "admin@rofsales.co.mz",
+        "nome": "Rofina Cumbe",
+        "password_hash": hashlib.sha256("admin123".encode()).hexdigest(),
+        "role": "admin"
+    },
+    "admin@dashboard.co.mz": {
+        "email": "admin@dashboard.co.mz",
+        "nome": "Administrador",
+        "password_hash": hashlib.sha256("admin123".encode()).hexdigest(),
+        "role": "admin"
+    }
+}
+
 def get_db():
     """Retorna a instância da base de dados MongoDB."""
     global mongo_client, mongo_db
@@ -45,12 +61,14 @@ def get_db():
         return None
 
 def buscar_usuario_db(email: str) -> dict:
-    """Busca um utilizador na colecção 'users' do MongoDB."""
+    """Busca um utilizador no MongoDB. Se indisponível, usa fallback em memória."""
     db = get_db()
-    if db is None:
-        return None
-    user = db["users"].find_one({"email": email})
-    return user
+    if db is not None:
+        user = db["users"].find_one({"email": email})
+        if user:
+            return user
+    # Fallback: utilizadores em memória
+    return ADMIN_USERS_FALLBACK.get(email)
 
 # Tokens de sessão ativos
 ACTIVE_TOKENS = {}
