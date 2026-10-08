@@ -9,3 +9,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
+      - key: MONGODB_URI
+        value: mongodb+srv://rofinacumbe01_db_user:Z9NKPFKwtpAiln2N@cluster0.kjp90za.mongodb.net/rofsalesdb?appName=Cluster0
+      - key: MONGODB_DB_NAME
+        value: rofsalesdb
