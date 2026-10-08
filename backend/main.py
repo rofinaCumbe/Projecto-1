@@ -24,13 +24,33 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "rofsalesdb")
 
-# Administrador padrão (credenciais iniciais)
-ADMIN_USERS = {
-    "admin@dashboard.co.mz": {
-        "nome": "Administrador",
-        "password_hash": hashlib.sha256("admin123".encode()).hexdigest()
-    }
-}
+# Conexão global ao MongoDB
+mongo_client = None
+mongo_db = None
+
+def get_db():
+    """Retorna a instância da base de dados MongoDB."""
+    global mongo_client, mongo_db
+    if mongo_db is not None:
+        return mongo_db
+    if not MONGODB_URI:
+        return None
+    try:
+        mongo_client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+        mongo_client.admin.command("ping")
+        mongo_db = mongo_client[MONGODB_DB_NAME]
+        return mongo_db
+    except Exception as e:
+        print(f"⚠️ Erro ao conectar ao MongoDB: {e}")
+        return None
+
+def buscar_usuario_db(email: str) -> dict:
+    """Busca um utilizador na colecção 'users' do MongoDB."""
+    db = get_db()
+    if db is None:
+        return None
+    user = db["users"].find_one({"email": email})
+    return user
 
 # Tokens de sessão ativos
 ACTIVE_TOKENS = {}
@@ -40,6 +60,44 @@ app = FastAPI(
     description="Backend para cálculo de KPIs e gestão de transações de vendas.",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+def criar_admins_iniciais():
+    """Cria os administradores padrão no MongoDB se ainda não existirem."""
+    db = get_db()
+    if db is None:
+        print("⚠️ MongoDB não disponível. Administradores não foram criados.")
+        return
+
+    colecao = db["users"]
+
+    # Criar índice único no campo email
+    colecao.create_index("email", unique=True)
+
+    # Lista de administradores iniciais
+    admins_padrao = [
+        {
+            "email": "admin@rofsales.co.mz",
+            "nome": "Rofina Cumbe",
+            "password_hash": hashlib.sha256("admin123".encode()).hexdigest(),
+            "role": "admin",
+            "criado_em": datetime.now().isoformat()
+        },
+        {
+            "email": "admin@dashboard.co.mz",
+            "nome": "Administrador",
+            "password_hash": hashlib.sha256("admin123".encode()).hexdigest(),
+            "role": "admin",
+            "criado_em": datetime.now().isoformat()
+        }
+    ]
+
+    for admin in admins_padrao:
+        if not colecao.find_one({"email": admin["email"]}):
+            colecao.insert_one(admin)
+            print(f"✅ Admin criado: {admin['email']} ({admin['nome']})")
+        else:
+            print(f"ℹ️ Admin já existe: {admin['email']}")
 
 # Habilitar CORS para permitir requisições de qualquer origem (Vercel, localhost, etc.)
 app.add_middleware(
@@ -138,12 +196,13 @@ def health():
 
 @app.post("/api/login")
 def fazer_login(dados: LoginRequest):
-    """Autenticação de administrador."""
+    """Autenticação de administrador via MongoDB."""
     email = dados.email.strip().lower()
     password_hash = hashlib.sha256(dados.password.encode()).hexdigest()
     
-    user = ADMIN_USERS.get(email)
-    if not user or user["password_hash"] != password_hash:
+    # Buscar utilizador no MongoDB
+    user = buscar_usuario_db(email)
+    if not user or user.get("password_hash") != password_hash:
         raise HTTPException(status_code=401, detail="Email ou password incorretos.")
     
     token = gerar_token()
