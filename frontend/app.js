@@ -235,11 +235,11 @@ async function carregarTabelaVendas() {
 const PLOTLY_DARK_LAYOUT = {
   paper_bgcolor: "transparent",
   plot_bgcolor: "transparent",
-  font: { color: "#94a3b8", family: "inherit" },
+  font: { color: "#64748b", family: "inherit" },
   margin: { t: 30, r: 20, l: 40, b: 40 },
   autosize: true,
-  xaxis: { gridcolor: "#334155", zerolinecolor: "#334155" },
-  yaxis: { gridcolor: "#334155", zerolinecolor: "#334155" }
+  xaxis: { gridcolor: "#e2e8f0", zerolinecolor: "#e2e8f0" },
+  yaxis: { gridcolor: "#e2e8f0", zerolinecolor: "#e2e8f0" }
 };
 
 const PLOTLY_CONFIG = {
