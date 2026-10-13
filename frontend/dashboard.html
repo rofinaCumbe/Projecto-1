@@ -49,6 +49,36 @@
       </div>
     </div>
 
+    <!-- Assistente de IA -->
+    <section class="ai-card">
+      <form class="ai-form" onsubmit="perguntarIA(event)">
+        <span class="ai-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+        <input type="text" id="ai-pergunta" maxlength="500" autocomplete="off"
+          placeholder="Pergunte à IA sobre as vendas... ex: Qual o produto mais rentável em Maputo?" />
+        <button type="submit" id="btn-ai" class="btn btn-primary">
+          <i class="fas fa-paper-plane"></i> Perguntar
+        </button>
+      </form>
+      <div class="ai-sugestoes">
+        <button type="button" class="ai-chip" onclick="usarSugestaoIA(this)">Qual o produto mais rentável?</button>
+        <button type="button" class="ai-chip" onclick="usarSugestaoIA(this)">Que cidade vende menos e porquê?</button>
+        <button type="button" class="ai-chip" onclick="usarSugestaoIA(this)">Como evoluiu o faturamento mês a mês?</button>
+        <button type="button" class="ai-chip" onclick="usarSugestaoIA(this)">Onde devo investir no próximo mês?</button>
+      </div>
+      <div id="ai-resultado" class="ai-resultado" hidden>
+        <div class="ai-resultado-header">
+          <strong><i class="fas fa-robot"></i> Resposta da IA</strong>
+          <span id="ai-modelo" class="ai-modelo"></span>
+        </div>
+        <p id="ai-resposta"></p>
+        <div id="ai-recomendacoes-bloco" hidden>
+          <strong><i class="fas fa-lightbulb"></i> Recomendações</strong>
+          <ul id="ai-recomendacoes"></ul>
+        </div>
+        <p id="ai-filtros" class="ai-filtros" hidden></p>
+      </div>
+    </section>
+
     <!-- Barra de Filtros -->
     <section class="filters-card">
       <div class="filters-header">

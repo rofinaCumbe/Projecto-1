@@ -3,7 +3,7 @@ API REST de Vendas em FastAPI para deploy no Render.
 Processamento de dados com Pandas, cálculo de KPIs e persistência em CSV.
 """
 
-from fastapi import FastAPI, HTTPException, Query, Depends, Request
+from fastapi import FastAPI, HTTPException, Query, Depends, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel, Field
@@ -14,8 +14,12 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta
 import pandas as pd
 import os
+import re
+import json
 import hashlib
 import secrets
+import urllib.request
+import urllib.error
 
 # Carregar variáveis de ambiente do ficheiro .env
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -23,6 +27,13 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 # Configuração MongoDB
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "rofsalesdb")
+
+# Configuração do Assistente de IA (qualquer API compatível com OpenAI: Ollama, Groq, OpenRouter, ...)
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1").rstrip("/")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:3b")
+LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "120"))
+MAX_LINHAS_CONTEXTO_IA = 300
 
 # Conexão global ao MongoDB
 mongo_client = None
@@ -174,6 +185,93 @@ def filtrar_dataframe(
 
     return df_filtrado
 
+def calcular_kpis(df_filtrado: pd.DataFrame) -> dict:
+    """Calcula os indicadores de negócio e agregados para os gráficos."""
+    if df_filtrado.empty:
+        return {
+            "faturamento_total": 0.0,
+            "total_vendas": 0,
+            "quantidade_total": 0,
+            "ticket_medio": 0.0,
+            "preco_medio_item": 0.0,
+            "ranking_produtos_faturamento": [],
+            "ranking_produtos_quantidade": [],
+            "faturamento_por_cidade": [],
+            "evolucao_temporal": []
+        }
+
+    faturamento_total = float(df_filtrado['valor_venda'].sum())
+    total_vendas = int(len(df_filtrado))
+    quantidade_total = int(df_filtrado['quantidade'].sum())
+    ticket_medio = float(df_filtrado['valor_venda'].mean())
+    preco_medio_item = float(faturamento_total / quantidade_total) if quantidade_total > 0 else 0.0
+
+    # 1. Ranking de faturamento por produto
+    fat_prod = (
+        df_filtrado.groupby('produto')['valor_venda']
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
+    ranking_fat = [
+        {"produto": row['produto'], "faturamento": float(row['valor_venda'])}
+        for _, row in fat_prod.iterrows()
+    ]
+
+    # 2. Ranking de quantidade por produto
+    qtd_prod = (
+        df_filtrado.groupby('produto')['quantidade']
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
+    ranking_qtd = [
+        {"produto": row['produto'], "quantidade": int(row['quantidade'])}
+        for _, row in qtd_prod.iterrows()
+    ]
+
+    # 3. Faturamento por praça (cidade)
+    fat_cid = (
+        df_filtrado.groupby('cidade')['valor_venda']
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
+    dist_cidades = []
+    for _, row in fat_cid.iterrows():
+        f = float(row['valor_venda'])
+        perc = (f / faturamento_total * 100.0) if faturamento_total > 0 else 0.0
+        dist_cidades.append({
+            "cidade": row['cidade'],
+            "faturamento": f,
+            "percentual": round(perc, 1)
+        })
+
+    # 4. Evolução temporal (ordenada por data)
+    fat_tempo = (
+        df_filtrado.groupby(df_filtrado['data'].dt.strftime('%Y-%m-%d'))['valor_venda']
+        .sum()
+        .reset_index()
+        .rename(columns={'data': 'data_str'})
+        .sort_values('data_str')
+    )
+    evolucao = [
+        {"data": row['data_str'], "faturamento": float(row['valor_venda'])}
+        for _, row in fat_tempo.iterrows()
+    ]
+
+    return {
+        "faturamento_total": faturamento_total,
+        "total_vendas": total_vendas,
+        "quantidade_total": quantidade_total,
+        "ticket_medio": ticket_medio,
+        "preco_medio_item": preco_medio_item,
+        "ranking_produtos_faturamento": ranking_fat,
+        "ranking_produtos_quantidade": ranking_qtd,
+        "faturamento_por_cidade": dist_cidades,
+        "evolucao_temporal": evolucao
+    }
+
 class NovaVenda(BaseModel):
     data: str = Field(..., description="Data no formato YYYY-MM-DD")
     produto: str = Field(..., min_length=1)
@@ -300,91 +398,7 @@ def obter_kpis(
     try:
         df = carregar_dados()
         df_filtrado = filtrar_dataframe(df, cidade, produto, data_inicio, data_fim)
-
-        if df_filtrado.empty:
-            return {
-                "faturamento_total": 0.0,
-                "total_vendas": 0,
-                "quantidade_total": 0,
-                "ticket_medio": 0.0,
-                "preco_medio_item": 0.0,
-                "ranking_produtos_faturamento": [],
-                "ranking_produtos_quantidade": [],
-                "faturamento_por_cidade": [],
-                "evolucao_temporal": []
-            }
-
-        faturamento_total = float(df_filtrado['valor_venda'].sum())
-        total_vendas = int(len(df_filtrado))
-        quantidade_total = int(df_filtrado['quantidade'].sum())
-        ticket_medio = float(df_filtrado['valor_venda'].mean())
-        preco_medio_item = float(faturamento_total / quantidade_total) if quantidade_total > 0 else 0.0
-
-        # 1. Ranking de faturamento por produto
-        fat_prod = (
-            df_filtrado.groupby('produto')['valor_venda']
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
-        ranking_fat = [
-            {"produto": row['produto'], "faturamento": float(row['valor_venda'])}
-            for _, row in fat_prod.iterrows()
-        ]
-
-        # 2. Ranking de quantidade por produto
-        qtd_prod = (
-            df_filtrado.groupby('produto')['quantidade']
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
-        ranking_qtd = [
-            {"produto": row['produto'], "quantidade": int(row['quantidade'])}
-            for _, row in qtd_prod.iterrows()
-        ]
-
-        # 3. Faturamento por praça (cidade)
-        fat_cid = (
-            df_filtrado.groupby('cidade')['valor_venda']
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
-        dist_cidades = []
-        for _, row in fat_cid.iterrows():
-            f = float(row['valor_venda'])
-            perc = (f / faturamento_total * 100.0) if faturamento_total > 0 else 0.0
-            dist_cidades.append({
-                "cidade": row['cidade'],
-                "faturamento": f,
-                "percentual": round(perc, 1)
-            })
-
-        # 4. Evolução temporal (ordenada por data)
-        fat_tempo = (
-            df_filtrado.groupby(df_filtrado['data'].dt.strftime('%Y-%m-%d'))['valor_venda']
-            .sum()
-            .reset_index()
-            .rename(columns={'data': 'data_str'})
-            .sort_values('data_str')
-        )
-        evolucao = [
-            {"data": row['data_str'], "faturamento": float(row['valor_venda'])}
-            for _, row in fat_tempo.iterrows()
-        ]
-
-        return {
-            "faturamento_total": faturamento_total,
-            "total_vendas": total_vendas,
-            "quantidade_total": quantidade_total,
-            "ticket_medio": ticket_medio,
-            "preco_medio_item": preco_medio_item,
-            "ranking_produtos_faturamento": ranking_fat,
-            "ranking_produtos_quantidade": ranking_qtd,
-            "faturamento_por_cidade": dist_cidades,
-            "evolucao_temporal": evolucao
-        }
+        return calcular_kpis(df_filtrado)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -475,3 +489,147 @@ def exportar_csv(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==============================================================================
+# ASSISTENTE DE IA (modelos open source via API compatível com OpenAI)
+# ==============================================================================
+class PerguntaIA(BaseModel):
+    pergunta: str = Field(..., min_length=3, max_length=500)
+
+PROMPT_SISTEMA_IA = """És um analista de vendas sénior de uma empresa moçambicana.
+Respondes sempre em português, de forma clara e objetiva, com valores em Meticais (MZN);
+nunca uses R$ nem outra moeda. Usa os totais já calculados no resumo em vez de fazer contas.
+Baseia-te APENAS nos dados fornecidos; se a informação não existir nos dados, di-lo.
+Responde SEMPRE com um objeto JSON válido, sem texto fora do JSON, com este formato:
+{
+  "resposta": "resposta direta à pergunta, com números concretos (máx. 120 palavras)",
+  "recomendacoes": ["até 3 recomendações práticas para tomada de decisão"],
+  "filtros": {"cidade": null, "produto": null, "data_inicio": null, "data_fim": null}
+}
+Em "filtros", preenche apenas os campos que ajudam a visualizar a resposta na dashboard
+(cidade e produto têm de ser exatamente um dos valores disponíveis; datas no formato YYYY-MM-DD);
+deixa null os restantes."""
+
+def construir_contexto_ia(df: pd.DataFrame) -> str:
+    kpis = calcular_kpis(df)
+    cidades = sorted(df['cidade'].dropna().unique().tolist())
+    produtos = sorted(df['produto'].dropna().unique().tolist())
+    mensal = (
+        df.groupby(df['data'].dt.strftime('%Y-%m'))
+        .agg(faturamento=('valor_venda', 'sum'), vendas=('valor_venda', 'size'), quantidade=('quantidade', 'sum'))
+        .reset_index()
+        .rename(columns={'data': 'mes'})
+    )
+    cidade_produto = (
+        df.groupby(['cidade', 'produto'])
+        .agg(faturamento=('valor_venda', 'sum'), quantidade=('quantidade', 'sum'))
+        .reset_index()
+        .sort_values('faturamento', ascending=False)
+    )
+    recentes = df.sort_values('data', ascending=False).head(MAX_LINHAS_CONTEXTO_IA).copy()
+    recentes['data'] = recentes['data'].dt.strftime('%Y-%m-%d')
+
+    resumo = {
+        "periodo": {
+            "inicio": df['data'].min().strftime('%Y-%m-%d') if not df.empty else None,
+            "fim": df['data'].max().strftime('%Y-%m-%d') if not df.empty else None,
+        },
+        "cidades_disponiveis": cidades,
+        "produtos_disponiveis": produtos,
+        "kpis": {k: kpis[k] for k in ("faturamento_total", "total_vendas", "quantidade_total", "ticket_medio", "preco_medio_item")},
+        "faturamento_por_produto": kpis["ranking_produtos_faturamento"],
+        "quantidade_por_produto": kpis["ranking_produtos_quantidade"],
+        "faturamento_por_cidade": kpis["faturamento_por_cidade"],
+        "evolucao_mensal": mensal.to_dict(orient="records"),
+        "faturamento_por_cidade_e_produto": cidade_produto.to_dict(orient="records"),
+    }
+    return (
+        f"RESUMO DOS DADOS (JSON):\n{json.dumps(resumo, ensure_ascii=False, default=float)}\n\n"
+        f"TRANSAÇÕES ({len(recentes)} mais recentes de {len(df)}, CSV):\n{recentes.to_csv(index=False)}"
+    )
+
+def chamar_llm(mensagens: list) -> str:
+    payload = {
+        "model": LLM_MODEL,
+        "messages": mensagens,
+        "temperature": 0.2,
+        "response_format": {"type": "json_object"},
+    }
+    headers = {"Content-Type": "application/json"}
+    if LLM_API_KEY:
+        headers["Authorization"] = f"Bearer {LLM_API_KEY}"
+    req = urllib.request.Request(
+        f"{LLM_BASE_URL}/chat/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=LLM_TIMEOUT) as resp:
+        dados = json.loads(resp.read().decode("utf-8"))
+    return dados["choices"][0]["message"]["content"]
+
+def interpretar_resposta_ia(conteudo: str, cidades: List[str], produtos: List[str]) -> dict:
+    try:
+        bruto = json.loads(conteudo)
+    except json.JSONDecodeError:
+        encontrado = re.search(r"\{.*\}", conteudo, re.DOTALL)
+        try:
+            bruto = json.loads(encontrado.group(0)) if encontrado else {}
+        except json.JSONDecodeError:
+            bruto = {}
+    if not isinstance(bruto, dict) or not bruto.get("resposta"):
+        bruto = {"resposta": conteudo.strip()}
+
+    recomendacoes = bruto.get("recomendacoes") or []
+    if not isinstance(recomendacoes, list):
+        recomendacoes = [recomendacoes]
+    recomendacoes = [str(r).strip() for r in recomendacoes if str(r).strip()][:3]
+
+    filtros_brutos = bruto.get("filtros") if isinstance(bruto.get("filtros"), dict) else {}
+    mapa_cidades = {c.lower(): c for c in cidades}
+    mapa_produtos = {p.lower(): p for p in produtos}
+    filtros = {
+        "cidade": mapa_cidades.get(str(filtros_brutos.get("cidade") or "").strip().lower()),
+        "produto": mapa_produtos.get(str(filtros_brutos.get("produto") or "").strip().lower()),
+        "data_inicio": None,
+        "data_fim": None,
+    }
+    for campo in ("data_inicio", "data_fim"):
+        valor = str(filtros_brutos.get(campo) or "").strip()
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", valor):
+            try:
+                datetime.strptime(valor, "%Y-%m-%d")
+                filtros[campo] = valor
+            except ValueError:
+                pass
+
+    return {"resposta": str(bruto["resposta"]).strip(), "recomendacoes": recomendacoes, "filtros": filtros}
+
+@app.post("/api/ia")
+def perguntar_ia(dados: PerguntaIA, authorization: Optional[str] = Header(None)):
+    """Responde a perguntas em linguagem natural sobre as vendas, com recomendações e filtros sugeridos."""
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    if not verificar_token(token):
+        raise HTTPException(status_code=401, detail="Sessão expirada ou inválida.")
+
+    df = carregar_dados()
+    cidades = sorted(df['cidade'].dropna().unique().tolist())
+    produtos = sorted(df['produto'].dropna().unique().tolist())
+    mensagens = [
+        {"role": "system", "content": PROMPT_SISTEMA_IA},
+        {"role": "user", "content": f"{construir_contexto_ia(df)}\nPERGUNTA: {dados.pergunta.strip()}"},
+    ]
+
+    try:
+        conteudo = chamar_llm(mensagens)
+    except urllib.error.HTTPError as e:
+        detalhe = e.read().decode("utf-8", errors="ignore")[:300]
+        raise HTTPException(status_code=502, detail=f"O modelo de IA devolveu um erro ({e.code}): {detalhe}")
+    except (urllib.error.URLError, TimeoutError) as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Assistente de IA indisponível ({LLM_BASE_URL}). Verifique LLM_BASE_URL, LLM_MODEL e LLM_API_KEY. ({e})",
+        )
+
+    return {**interpretar_resposta_ia(conteudo, cidades, produtos), "modelo": LLM_MODEL}

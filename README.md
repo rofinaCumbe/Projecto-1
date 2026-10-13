@@ -19,6 +19,7 @@ Aplicação completa de análise, diagnóstico e visualização interativa de da
 - **Filtros Dinâmicos**: Filtragem combinada por Cidade/Praça, Produto e Intervalo de Datas.
 - **Entrada de Novos Registos**: Formulário interativo para adicionar novas vendas com cálculo automático do total e persistência em `vendas.csv`.
 - **Exportação de Relatórios**: Descarregamento dos dados filtrados em formato CSV.
+- **Assistente de IA (open source)**: Caixa de pesquisa no topo da dashboard para fazer perguntas em linguagem natural sobre as vendas. A IA responde com números concretos, sugere recomendações e aplica automaticamente os filtros relevantes.
 
 ---
 
@@ -91,6 +92,27 @@ Projecto1/
    - Clique no botão do cabeçalho que indica o status da API (ex: *"A ligar ao Render..."* ou *"Backend Offline"*).
    - Cole o URL do seu backend no Render gerado no passo 1 e clique em **"Salvar URL"**.
    - A dashboard sincronizará imediatamente e guardará a configuração no seu navegador!
+
+---
+
+## Assistente de IA (modelos open source)
+
+O endpoint `POST /api/ia` envia o resumo dos KPIs e as transações a um modelo open source através de qualquer API compatível com OpenAI. Configure com variáveis de ambiente:
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `LLM_BASE_URL` | `http://localhost:11434/v1` | URL da API (Ollama local, Groq, OpenRouter, ...) |
+| `LLM_MODEL` | `llama3.2:3b` | Nome do modelo |
+| `LLM_API_KEY` | *(vazio)* | Chave da API (não necessária no Ollama) |
+| `LLM_TIMEOUT` | `120` | Tempo máximo de resposta em segundos |
+
+**Local (100% open source e gratuito) com [Ollama](https://ollama.com):**
+```bash
+ollama pull llama3.2:3b
+```
+O Ollama fica a correr em `http://localhost:11434` e o backend usa-o automaticamente.
+
+**Produção no Render (plano gratuito sem memória para correr modelos):** use o [Groq](https://console.groq.com), que serve gratuitamente modelos open source (Llama 3.3). Crie uma chave e defina `LLM_API_KEY` no painel do Render (o `render.yaml` já define `LLM_BASE_URL` e `LLM_MODEL`).
 
 ---
 

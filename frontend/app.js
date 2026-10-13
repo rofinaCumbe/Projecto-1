@@ -450,6 +450,94 @@ async function submeterVenda(event) {
 }
 
 // ==============================================================================
+// ASSISTENTE DE IA
+// ==============================================================================
+function usarSugestaoIA(botao) {
+  document.getElementById("ai-pergunta").value = botao.textContent;
+  document.getElementById("btn-ai").click();
+}
+
+function aplicarFiltrosIA(filtros) {
+  if (!filtros) return [];
+  const aplicados = [];
+  const definirSelect = (id, valor, rotulo) => {
+    const sel = document.getElementById(id);
+    if (valor && [...sel.options].some((o) => o.value === valor)) {
+      sel.value = valor;
+      aplicados.push(`${rotulo}: ${valor}`);
+    } else {
+      sel.value = "";
+    }
+  };
+  definirSelect("filtro-cidade", filtros.cidade, "Cidade");
+  definirSelect("filtro-produto", filtros.produto, "Produto");
+  document.getElementById("filtro-data-inicio").value = filtros.data_inicio || "";
+  document.getElementById("filtro-data-fim").value = filtros.data_fim || "";
+  if (filtros.data_inicio) aplicados.push(`Desde: ${filtros.data_inicio}`);
+  if (filtros.data_fim) aplicados.push(`Até: ${filtros.data_fim}`);
+  aplicarFiltros();
+  return aplicados;
+}
+
+async function perguntarIA(event) {
+  event.preventDefault();
+  const input = document.getElementById("ai-pergunta");
+  const pergunta = input.value.trim();
+  if (pergunta.length < 3) return;
+
+  const btn = document.getElementById("btn-ai");
+  const resultado = document.getElementById("ai-resultado");
+  const resposta = document.getElementById("ai-resposta");
+  const recBloco = document.getElementById("ai-recomendacoes-bloco");
+  const recLista = document.getElementById("ai-recomendacoes");
+  const filtrosTxt = document.getElementById("ai-filtros");
+  const modeloTxt = document.getElementById("ai-modelo");
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A analisar...';
+  resultado.hidden = false;
+  resultado.classList.remove("erro");
+  resposta.textContent = "A IA está a analisar os dados de vendas...";
+  recBloco.hidden = true;
+  filtrosTxt.hidden = true;
+  modeloTxt.textContent = "";
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/ia`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${obterTokenAuth()}` },
+      body: JSON.stringify({ pergunta })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || "Falha ao contactar o assistente de IA.");
+
+    resposta.textContent = data.resposta;
+    modeloTxt.textContent = data.modelo ? `Modelo: ${data.modelo}` : "";
+
+    recLista.replaceChildren(
+      ...(data.recomendacoes || []).map((r) => {
+        const li = document.createElement("li");
+        li.textContent = r;
+        return li;
+      })
+    );
+    recBloco.hidden = recLista.children.length === 0;
+
+    const aplicados = aplicarFiltrosIA(data.filtros);
+    if (aplicados.length) {
+      filtrosTxt.textContent = `Filtros aplicados na dashboard: ${aplicados.join(" | ")}`;
+      filtrosTxt.hidden = false;
+    }
+  } catch (err) {
+    resultado.classList.add("erro");
+    resposta.textContent = err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Perguntar';
+  }
+}
+
+// ==============================================================================
 // MODAL DE CONFIGURAÇÃO DO BACKEND (RENDER)
 // ==============================================================================
 function abrirModalConfig() {

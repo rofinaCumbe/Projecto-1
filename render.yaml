@@ -13,3 +13,9 @@ services:
         value: mongodb+srv://rofinacumbe01_db_user:Z9NKPFKwtpAiln2N@cluster0.kjp90za.mongodb.net/rofsalesdb?appName=Cluster0
       - key: MONGODB_DB_NAME
         value: rofsalesdb
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: llama-3.3-70b-versatile
+      - key: LLM_API_KEY
+        sync: false
