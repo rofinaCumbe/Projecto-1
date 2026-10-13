@@ -93,7 +93,7 @@ df_filtrado = df[
 # Botão de exportação na barra lateral
 st.sidebar.divider()
 st.sidebar.download_button(
-    label="Descarregar Dados (CSV)",
+    label="Exportar Dados (CSV)",
     data=df_filtrado.to_csv(index=False).encode('utf-8'),
     file_name="vendas_filtrado.csv",
     mime="text/csv",
@@ -338,7 +338,7 @@ else:
         # Conversão do DataFrame filtrado para CSV codificado em UTF-8
         csv_bytes = df_filtrado.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Descarregar CSV",
+            label="Exportar CSV",
             data=csv_bytes,
             file_name="relatorio_vendas.csv",
             mime="text/csv",
