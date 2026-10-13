@@ -6,279 +6,301 @@
   <title>Dashboard de Vendas | Moçambique</title>
   <!-- Font Awesome para ícones profissionais -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Plotly CDN para gráficos de alta performance -->
-  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --border-color: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --card-radius: 12px;
+      --transition: all 0.2s ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+    }
+
+    .hero-content {
+      max-width: 900px;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .brand-icon {
+      font-size: 5rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 3rem 0;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 2rem;
+      text-align: left;
+      transition: var(--transition);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .feature-card p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .footer {
+      margin-top: auto;
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn {
+        justify-content: center;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Cabeçalho -->
-    <header>
-      <div class="brand">
-        <span class="brand-icon"><i class="fas fa-chart-line"></i></span>
-        <div>
-          <h1>Dashboard de Vendas</h1>
-          <p>Acompanhamento de vendas, faturamento por região e volume de produtos. <span id="welcome-user"></span></p>
+  <div class="hero">
+    <div class="hero-content">
+      <div class="brand-icon">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <h1>Dashboard de Vendas</h1>
+      <p>
+        Sistema completo de análise, diagnóstico e visualização interativa de dados de vendas 
+        contextualizado para Moçambique. Monitore faturamento, volume de produtos e 
+        distribuição regional em tempo real.
+      </p>
+
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <h3>KPIs em Tempo Real</h3>
+          <p>Acompanhe faturamento total, ticket médio, quantidade vendida e outros indicadores chave de negócio.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-filter"></i>
+          </div>
+          <h3>Filtros Dinâmicos</h3>
+          <p>Filtre dados por cidade, produto e intervalo de datas para análises específicas e personalizadas.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-map-marked-alt"></i>
+          </div>
+          <h3>Distribuição Regional</h3>
+          <p>Visualize o faturamento por praça/cidade com gráficos interativos e análises geográficas.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <h3>Evolução Temporal</h3>
+          <p>Analise a evolução do faturamento ao longo do tempo com gráficos de linha interativos.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-plus-circle"></i>
+          </div>
+          <h3>Registo de Vendas</h3>
+          <p>Adicione novas vendas diretamente no sistema com cálculo automático de valores.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-download"></i>
+          </div>
+          <h3>Exportação de Dados</h3>
+          <p>Exporte relatórios em formato CSV para partilhar com clientes e stakeholders.</p>
         </div>
       </div>
 
-      <div class="header-actions">
-        <button class="btn btn-outline" onclick="fazerLogout()" title="Terminar Sessão">
-          <i class="fas fa-sign-out-alt"></i> Sair
-        </button>
-        <!-- Indicador de Status do Backend -->
-        <button id="btn-status" class="status-pill" onclick="abrirModalConfig()" title="Clique para configurar o URL do Backend no Render">
-          <span id="status-dot" class="status-dot"></span>
-          <span id="status-text">A ligar ao Render...</span>
-        </button>
-
-        <button class="btn btn-primary" onclick="abrirModalVenda()">
-          <i class="fas fa-plus"></i> Registar Venda
-        </button>
-      </div>
-    </header>
-
-    <!-- Alerta amigável de Cold Start do Render -->
-    <div id="cold-start-banner" class="cold-start-banner">
-      <span><i class="fas fa-clock"></i></span>
-      <div>
-        <strong>Aviso do Render:</strong> No plano gratuito, os servidores sem atividade entram em repouso. O primeiro arranque pode demorar entre 30 a 50 segundos. Agradecemos a paciência!
+      <div class="cta-buttons">
+        <a href="login.html" class="btn btn-primary">
+          <i class="fas fa-sign-in-alt"></i> Acessar Dashboard
+        </a>
+        <a href="https://github.com/rofinaCumbe/Projecto-1" target="_blank" class="btn btn-outline">
+          <i class="fab fa-github"></i> Ver no GitHub
+        </a>
       </div>
     </div>
 
-    <!-- Barra de Filtros -->
-    <section class="filters-card">
-      <div class="filters-header">
-        <h2><i class="fas fa-filter"></i> Filtros de Vendas</h2>
-        <button class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="limparFiltros()">
-          Limpar Filtros
-        </button>
-      </div>
-
-      <div class="filters-grid">
-        <div class="filter-group">
-          <label for="filtro-cidade">Cidade / Praça:</label>
-          <select id="filtro-cidade" onchange="aplicarFiltros()">
-            <option value="">Todas as Cidades</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label for="filtro-produto">Produto:</label>
-          <select id="filtro-produto" onchange="aplicarFiltros()">
-            <option value="">Todos os Produtos</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label for="filtro-data-inicio">Data Início:</label>
-          <input type="date" id="filtro-data-inicio" onchange="aplicarFiltros()" />
-        </div>
-
-        <div class="filter-group">
-          <label for="filtro-data-fim">Data Fim:</label>
-          <input type="date" id="filtro-data-fim" onchange="aplicarFiltros()" />
-        </div>
-      </div>
-    </section>
-
-    <!-- Indicadores Chave (KPIs) -->
-    <section class="kpis-grid">
-      <div class="kpi-card">
-        <div class="kpi-info">
-          <h3><i class="fas fa-dollar-sign"></i> Faturamento Total</h3>
-          <div class="kpi-value" id="kpi-faturamento">0,00 MZN</div>
-        </div>
-        <div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-info">
-          <h3><i class="fas fa-receipt"></i> Total de Vendas</h3>
-          <div class="kpi-value" id="kpi-transacoes">0</div>
-        </div>
-        <div class="kpi-icon"><i class="fas fa-file-invoice"></i></div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-info">
-          <h3><i class="fas fa-boxes"></i> Quantidade Vendida</h3>
-          <div class="kpi-value" id="kpi-quantidade">0 un</div>
-        </div>
-        <div class="kpi-icon"><i class="fas fa-cube"></i></div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-info">
-          <h3><i class="fas fa-chart-bar"></i> Ticket Médio</h3>
-          <div class="kpi-value" id="kpi-ticket">0,00 MZN</div>
-        </div>
-        <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
-      </div>
-    </section>
-
-    <!-- Gráficos Interativos Plotly -->
-    <section class="charts-grid">
-      <div class="chart-card">
-        <h3>Faturamento por Produto</h3>
-        <div id="chart-produto" class="chart-container"></div>
-      </div>
-
-      <div class="chart-card">
-        <h3>Faturamento por Praça (Cidade)</h3>
-        <div id="chart-cidade" class="chart-container"></div>
-      </div>
-
-      <div class="chart-card">
-        <h3>Evolução Temporal do Faturamento</h3>
-        <div id="chart-tempo" class="chart-container"></div>
-      </div>
-
-      <div class="chart-card">
-        <h3>Volume de Vendas por Produto (Unidades)</h3>
-        <div id="chart-volume" class="chart-container"></div>
-      </div>
-    </section>
-
-    <!-- Tabela de Transações com Exportação CSV -->
-    <section class="table-card">
-      <div class="table-header">
-        <div>
-          <h2 style="font-size: 1.1rem;"><i class="fas fa-list"></i> Transações Detalhadas</h2>
-          <p style="font-size: 0.8rem; color: var(--text-secondary);" id="total-registos-txt">A carregar registos...</p>
-        </div>
-        <button class="btn btn-secondary" onclick="exportarCSV()">
-          <i class="fas fa-download"></i> Descarregar CSV
-        </button>
-      </div>
-
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Produto</th>
-              <th>Cidade</th>
-              <th>Quantidade</th>
-              <th>Preço Unitário</th>
-              <th>Valor Total</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-vendas-body">
-            <tr>
-              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">A carregar dados...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <!-- Modal: Registar Nova Venda -->
-  <div id="modal-venda" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-plus-circle"></i> Registar Nova Venda</h3>
-        <button class="btn-close" onclick="fecharModalVenda()">&times;</button>
-      </div>
-
-      <form id="form-nova-venda" onsubmit="submeterVenda(event)">
-        <div class="form-group">
-          <label for="nova-data">Data da Venda:</label>
-          <input type="date" id="nova-data" required />
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="nova-cidade-select">Cidade Existente:</label>
-            <select id="nova-cidade-select" onchange="limparInput('nova-cidade-custom')">
-              <option value="">-- Escolher Existente --</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="nova-cidade-custom">Ou Nova Cidade:</label>
-            <input type="text" id="nova-cidade-custom" placeholder="Ex: Beira, Pemba..." oninput="limparSelect('nova-cidade-select')" />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="novo-produto-select">Produto Existente:</label>
-            <select id="novo-produto-select" onchange="limparInput('novo-produto-custom')">
-              <option value="">-- Escolher Existente --</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="novo-produto-custom">Ou Novo Produto:</label>
-            <input type="text" id="novo-produto-custom" placeholder="Ex: Projetor, Switch..." oninput="limparSelect('novo-produto-select')" />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="nova-quantidade">Quantidade:</label>
-            <input type="number" id="nova-quantidade" min="1" value="1" required oninput="calcularTotalPrevisto()" />
-          </div>
-          <div class="form-group">
-            <label for="novo-preco">Preço Unitário (MZN):</label>
-            <input type="number" id="novo-preco" min="1" step="100" value="1000" required oninput="calcularTotalPrevisto()" />
-          </div>
-        </div>
-
-        <div class="total-preview-box">
-          <span><i class="fas fa-calculator"></i> Valor Calculado:</span>
-          <strong id="preview-total">1 000,00 MZN</strong>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
-          <button type="button" class="btn btn-secondary" onclick="fecharModalVenda()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" id="btn-salvar-venda"><i class="fas fa-save"></i> Salvar Venda</button>
-        </div>
-      </form>
+    <div class="footer">
+      <p>&copy; 2024 Dashboard de Vendas | Moçambique</p>
     </div>
   </div>
-
-  <!-- Modal: Configuração do Backend (Render / Local) -->
-  <div id="modal-config" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-cog"></i> Configuração do Backend (Render)</h3>
-        <button class="btn-close" onclick="fecharModalConfig()">&times;</button>
-      </div>
-
-      <div class="form-group">
-        <label for="config-api-url">URL da API (Backend):</label>
-        <input type="url" id="config-api-url" placeholder="https://seu-backend.onrender.com" />
-        <small style="color: var(--text-muted); margin-top: 0.35rem;">
-          Insira o URL gerado pelo <strong>Render</strong> para ligar este frontend no Vercel à sua API.
-        </small>
-      </div>
-
-      <div style="display: flex; gap: 0.75rem; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
-        <button type="button" class="btn btn-outline" onclick="restaurarLocalhost()">
-          Usar Localhost (8000)
-        </button>
-        <div style="display: flex; gap: 0.75rem;">
-          <button type="button" class="btn btn-secondary" onclick="fecharModalConfig()">Fechar</button>
-          <button type="button" class="btn btn-primary" onclick="guardarConfigAPI()">Salvar URL</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Notificações Toast -->
-  <div id="toast-container" class="toast-container"></div>
-
-  <!-- Scripts -->
-  <script src="config.js"></script>
-  <script src="app.js"></script>
-  <script>
-    // Exibir nome do utilizador logado
-    const nomeUser = localStorage.getItem('auth_user');
-    if (nomeUser) {
-      const el = document.getElementById('welcome-user');
-      if (el) el.textContent = '| Olá, ' + nomeUser + '!';
-    }
-  </script>
 </body>
 </html>

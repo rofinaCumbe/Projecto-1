@@ -4,7 +4,7 @@
 function verificarAutenticacao() {
   const token = localStorage.getItem('auth_token');
   if (!token) {
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
     return false;
   }
   return true;
@@ -20,7 +20,7 @@ function fazerLogout() {
   fetch(`${apiUrl}/api/logout?token=${token}`, { method: 'POST' }).catch(() => {});
   localStorage.removeItem('auth_token');
   localStorage.removeItem('auth_user');
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }
 
 /**
@@ -491,7 +491,7 @@ async function inicializarApp() {
     if (!res.ok) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
       return;
     }
   } catch (err) {

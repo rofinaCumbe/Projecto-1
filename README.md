@@ -32,7 +32,9 @@ Projecto1/
 │   └── vendas.csv                  # Base de dados de vendas
 │
 ├── frontend/                       # Frontend estático (Deploy no Vercel)
-│   ├── index.html                  # Interface da dashboard com KPIs e gráficos Plotly
+│   ├── index.html                  # Página inicial/landing page
+│   ├── dashboard.html              # Interface da dashboard com KPIs e gráficos Plotly
+│   ├── login.html                  # Página de login
 │   ├── app.js                      # Lógica de consumo da API, filtros e formulário
 │   ├── styles.css                  # Estilos modernos para tema profissional
 │   └── config.js                   # Configuração dinâmica do URL da API

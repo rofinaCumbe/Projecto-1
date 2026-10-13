@@ -243,7 +243,7 @@
                     if (data.nome) {
                         localStorage.setItem('auth_user', data.nome);
                     }
-                    window.location.href = 'index.html';
+                    window.location.href = 'dashboard.html';
                 } else {
                     errorMessage.textContent = data.message || data.detail || 'Falha no login. Verifique as suas credenciais.';
                     errorMessage.style.display = 'block';
