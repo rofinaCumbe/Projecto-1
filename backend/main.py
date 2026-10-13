@@ -57,7 +57,7 @@ def get_db():
         mongo_db = mongo_client[MONGODB_DB_NAME]
         return mongo_db
     except Exception as e:
-        print(f"⚠️ Erro ao conectar ao MongoDB: {e}")
+        print(f"[AVISO] Erro ao conectar ao MongoDB: {e}")
         return None
 
 def buscar_usuario_db(email: str) -> dict:
@@ -84,7 +84,7 @@ def criar_admins_iniciais():
     """Cria os administradores padrão no MongoDB se ainda não existirem."""
     db = get_db()
     if db is None:
-        print("⚠️ MongoDB não disponível. Administradores não foram criados.")
+        print("[AVISO] MongoDB nao disponivel. Administradores nao foram criados.")
         return
 
     colecao = db["users"]
@@ -113,9 +113,9 @@ def criar_admins_iniciais():
     for admin in admins_padrao:
         if not colecao.find_one({"email": admin["email"]}):
             colecao.insert_one(admin)
-            print(f"✅ Admin criado: {admin['email']} ({admin['nome']})")
+            print(f"[OK] Admin criado: {admin['email']} ({admin['nome']})")
         else:
-            print(f"ℹ️ Admin já existe: {admin['email']}")
+            print(f"[INFO] Admin ja existe: {admin['email']}")
 
 # Habilitar CORS para permitir requisições de qualquer origem (Vercel, localhost, etc.)
 app.add_middleware(

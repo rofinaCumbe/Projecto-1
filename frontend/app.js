@@ -43,8 +43,9 @@ function mostrarToast(mensagem, tipo = "success") {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
   toast.className = `toast ${tipo}`;
+  const icon = tipo === "success" ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-triangle"></i>';
   toast.innerHTML = `
-    <span>${tipo === "success" ? "✅" : "⚠️"}</span>
+    <span>${icon}</span>
     <span>${mensagem}</span>
   `;
   container.appendChild(toast);

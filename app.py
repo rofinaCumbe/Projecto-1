@@ -7,7 +7,7 @@ import plotly.express as px
 # ==============================================================================
 st.set_page_config(
     page_title="Dashboard de Vendas",
-    page_icon="📊",
+    page_icon="▤",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -45,7 +45,7 @@ def formatar_mzn(valor):
 # ==============================================================================
 # BARRA LATERAL (FILTROS)
 # ==============================================================================
-st.sidebar.header("🔍 Filtros de Vendas")
+st.sidebar.header("Filtros de Vendas")
 
 # 1. Filtro de Cidade
 todas_cidades = sorted(df['cidade'].unique().tolist())
@@ -93,7 +93,7 @@ df_filtrado = df[
 # Botão de exportação na barra lateral
 st.sidebar.divider()
 st.sidebar.download_button(
-    label="📥 Descarregar Dados (CSV)",
+    label="Descarregar Dados (CSV)",
     data=df_filtrado.to_csv(index=False).encode('utf-8'),
     file_name="vendas_filtrado.csv",
     mime="text/csv",
@@ -104,14 +104,14 @@ st.sidebar.download_button(
 # ==============================================================================
 # CABEÇALHO DA DASHBOARD
 # ==============================================================================
-st.title("📊 Dashboard de Vendas")
+st.title("Dashboard de Vendas")
 st.markdown("Acompanhamento de vendas, faturamento por região e volume de produtos.")
 st.divider()
 
 # ==============================================================================
 # INSERÇÃO MANUAL DE NOVO PRODUTO / VENDA
 # ==============================================================================
-with st.expander("➕ Registar Novo Produto ou Venda Manualmente", expanded=False):
+with st.expander("Registar Novo Produto ou Venda Manualmente", expanded=False):
     st.markdown("Preencha o formulário abaixo para registar uma nova venda ou produto diretamente na Dashboard.")
     
     with st.form("form_registo_manual", clear_on_submit=True):
@@ -150,9 +150,9 @@ with st.expander("➕ Registar Novo Produto ou Venda Manualmente", expanded=Fals
 
         # Cálculo automático da receita da nova transação
         total_previsto = int(qtd_manual * preco_manual)
-        st.info(f"💵 **Valor Calculado da Venda:** {formatar_mzn(total_previsto)}")
+        st.info(f"**Valor Calculado da Venda:** {formatar_mzn(total_previsto)}")
 
-        btn_confirmar = st.form_submit_button("💾 Adicionar Venda à Dashboard", use_container_width=True)
+        btn_confirmar = st.form_submit_button("Adicionar Venda à Dashboard", use_container_width=True)
 
         if btn_confirmar:
             # Resolução do nome do produto e da cidade (com prioridade para o novo texto digitado)
@@ -171,9 +171,9 @@ with st.expander("➕ Registar Novo Produto ou Venda Manualmente", expanded=Fals
                 cidade_final = ""
 
             if not cidade_final:
-                st.error("⚠️ Por favor, escolha ou digite o nome de uma cidade.")
+                st.error("Por favor, escolha ou digite o nome de uma cidade.")
             elif not produto_final:
-                st.error("⚠️ Por favor, escolha ou digite o nome de um produto.")
+                st.error("Por favor, escolha ou digite o nome de um produto.")
             else:
                 novo_registo = {
                     'data': nova_data.strftime('%Y-%m-%d'),
@@ -193,9 +193,9 @@ with st.expander("➕ Registar Novo Produto ou Venda Manualmente", expanded=Fals
                     with open('vendas.csv', 'a', encoding='utf-8') as f:
                         f.write(linha_csv)
                     st.cache_data.clear()
-                    st.success(f"✅ Venda de **{produto_final}** guardada no vendas.csv e integrada na Dashboard!")
+                    st.success(f"Venda de **{produto_final}** guardada no vendas.csv e integrada na Dashboard!")
                 except PermissionError:
-                    st.success(f"✅ Venda de **{produto_final}** adicionada com sucesso à Dashboard! (Dica: Se o ficheiro vendas.csv estiver aberto no WPS/Excel, a gravação em disco fica pendente até fechar o programa).")
+                    st.success(f"Venda de **{produto_final}** adicionada com sucesso à Dashboard! (Dica: Se o ficheiro vendas.csv estiver aberto no WPS/Excel, a gravação em disco fica pendente até fechar o programa).")
 
                 st.rerun()
 
@@ -203,7 +203,7 @@ with st.expander("➕ Registar Novo Produto ou Venda Manualmente", expanded=Fals
 # SEÇÃO 1: KPIS (FASE 4)
 # ==============================================================================
 if df_filtrado.empty:
-    st.warning("⚠️ Nenhum registo encontrado com os filtros selecionados. Ajuste os filtros na barra lateral.")
+    st.warning("Nenhum registo encontrado com os filtros selecionados. Ajuste os filtros na barra lateral.")
 else:
     # Cálculos dos KPIs com base nos dados filtrados
     faturamento_total = df_filtrado['valor_venda'].sum()
@@ -216,25 +216,25 @@ else:
 
     with kpi1:
         st.metric(
-            label="💰 Faturamento Total",
+            label="Faturamento Total",
             value=formatar_mzn(faturamento_total)
         )
 
     with kpi2:
         st.metric(
-            label="🧾 Total de Vendas",
+            label="Total de Vendas",
             value=f"{total_vendas} vendas"
         )
 
     with kpi3:
         st.metric(
-            label="📦 Quantidade Vendida",
+            label="Quantidade Vendida",
             value=f"{quantidade_total} un"
         )
 
     with kpi4:
         st.metric(
-            label="🎯 Ticket Médio",
+            label="Ticket Médio",
             value=formatar_mzn(ticket_medio)
         )
 
@@ -332,13 +332,13 @@ else:
     # ==============================================================================
     col_tab_tit, col_tab_btn = st.columns([3, 1])
     with col_tab_tit:
-        st.subheader("📋 Tabela de Registos de Vendas")
+        st.subheader("Tabela de Registos de Vendas")
         st.markdown("Visualização detalhada das transações correspondentes aos filtros aplicados.")
     with col_tab_btn:
         # Conversão do DataFrame filtrado para CSV codificado em UTF-8
         csv_bytes = df_filtrado.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="📥 Descarregar CSV",
+            label="Descarregar CSV",
             data=csv_bytes,
             file_name="relatorio_vendas.csv",
             mime="text/csv",

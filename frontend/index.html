@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard de Vendas | Moçambique</title>
+  <!-- Font Awesome para ícones profissionais -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- Plotly CDN para gráficos de alta performance -->
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <link rel="stylesheet" href="styles.css" />
@@ -13,7 +15,7 @@
     <!-- Cabeçalho -->
     <header>
       <div class="brand">
-        <span class="brand-icon">📊</span>
+        <span class="brand-icon"><i class="fas fa-chart-line"></i></span>
         <div>
           <h1>Dashboard de Vendas</h1>
           <p>Acompanhamento de vendas, faturamento por região e volume de produtos. <span id="welcome-user"></span></p>
@@ -22,7 +24,7 @@
 
       <div class="header-actions">
         <button class="btn btn-outline" onclick="fazerLogout()" title="Terminar Sessão">
-          🚪 Sair
+          <i class="fas fa-sign-out-alt"></i> Sair
         </button>
         <!-- Indicador de Status do Backend -->
         <button id="btn-status" class="status-pill" onclick="abrirModalConfig()" title="Clique para configurar o URL do Backend no Render">
@@ -31,14 +33,14 @@
         </button>
 
         <button class="btn btn-primary" onclick="abrirModalVenda()">
-          ➕ Registar Venda
+          <i class="fas fa-plus"></i> Registar Venda
         </button>
       </div>
     </header>
 
     <!-- Alerta amigável de Cold Start do Render -->
     <div id="cold-start-banner" class="cold-start-banner">
-      <span>⏳</span>
+      <span><i class="fas fa-clock"></i></span>
       <div>
         <strong>Aviso do Render:</strong> No plano gratuito, os servidores sem atividade entram em repouso. O primeiro arranque pode demorar entre 30 a 50 segundos. Agradecemos a paciência!
       </div>
@@ -47,7 +49,7 @@
     <!-- Barra de Filtros -->
     <section class="filters-card">
       <div class="filters-header">
-        <h2>🔍 Filtros de Vendas</h2>
+        <h2><i class="fas fa-filter"></i> Filtros de Vendas</h2>
         <button class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="limparFiltros()">
           Limpar Filtros
         </button>
@@ -84,34 +86,34 @@
     <section class="kpis-grid">
       <div class="kpi-card">
         <div class="kpi-info">
-          <h3>💰 Faturamento Total</h3>
+          <h3><i class="fas fa-dollar-sign"></i> Faturamento Total</h3>
           <div class="kpi-value" id="kpi-faturamento">0,00 MZN</div>
         </div>
-        <div class="kpi-icon">💵</div>
+        <div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-info">
-          <h3>🧾 Total de Vendas</h3>
+          <h3><i class="fas fa-receipt"></i> Total de Vendas</h3>
           <div class="kpi-value" id="kpi-transacoes">0</div>
         </div>
-        <div class="kpi-icon">📝</div>
+        <div class="kpi-icon"><i class="fas fa-file-invoice"></i></div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-info">
-          <h3>📦 Quantidade Vendida</h3>
+          <h3><i class="fas fa-boxes"></i> Quantidade Vendida</h3>
           <div class="kpi-value" id="kpi-quantidade">0 un</div>
         </div>
-        <div class="kpi-icon">📦</div>
+        <div class="kpi-icon"><i class="fas fa-cube"></i></div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-info">
-          <h3>🎯 Ticket Médio</h3>
+          <h3><i class="fas fa-chart-bar"></i> Ticket Médio</h3>
           <div class="kpi-value" id="kpi-ticket">0,00 MZN</div>
         </div>
-        <div class="kpi-icon">🎯</div>
+        <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
       </div>
     </section>
 
@@ -142,11 +144,11 @@
     <section class="table-card">
       <div class="table-header">
         <div>
-          <h2 style="font-size: 1.1rem;">📋 Transações Detalhadas</h2>
+          <h2 style="font-size: 1.1rem;"><i class="fas fa-list"></i> Transações Detalhadas</h2>
           <p style="font-size: 0.8rem; color: var(--text-secondary);" id="total-registos-txt">A carregar registos...</p>
         </div>
         <button class="btn btn-secondary" onclick="exportarCSV()">
-          📥 Descarregar CSV
+          <i class="fas fa-download"></i> Descarregar CSV
         </button>
       </div>
 
@@ -176,7 +178,7 @@
   <div id="modal-venda" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>➕ Registar Nova Venda</h3>
+        <h3><i class="fas fa-plus-circle"></i> Registar Nova Venda</h3>
         <button class="btn-close" onclick="fecharModalVenda()">&times;</button>
       </div>
 
@@ -224,13 +226,13 @@
         </div>
 
         <div class="total-preview-box">
-          <span>💵 Valor Calculado:</span>
+          <span><i class="fas fa-calculator"></i> Valor Calculado:</span>
           <strong id="preview-total">1 000,00 MZN</strong>
         </div>
 
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
           <button type="button" class="btn btn-secondary" onclick="fecharModalVenda()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" id="btn-salvar-venda">💾 Salvar Venda</button>
+          <button type="submit" class="btn btn-primary" id="btn-salvar-venda"><i class="fas fa-save"></i> Salvar Venda</button>
         </div>
       </form>
     </div>
@@ -240,7 +242,7 @@
   <div id="modal-config" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>⚙️ Configuração do Backend (Render)</h3>
+        <h3><i class="fas fa-cog"></i> Configuração do Backend (Render)</h3>
         <button class="btn-close" onclick="fecharModalConfig()">&times;</button>
       </div>
 

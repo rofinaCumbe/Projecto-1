@@ -7,7 +7,7 @@ Aplicação completa de análise, diagnóstico e visualização interativa de da
 
 ---
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
 - **Diagnóstico e Análise de Dados**: Processamento e cálculo de KPIs de vendas com Pandas.
 - **Indicadores de Negócio (KPIs)**: Faturamento total, total de vendas, quantidade vendida, ticket médio e preço médio por item.
@@ -54,7 +54,7 @@ Projecto1/
 
 ---
 
-## 🌐 Como Fazer Deploy
+## Como Fazer Deploy
 
 ### 1. Deploy do Backend no [Render](https://render.com)
 
@@ -92,7 +92,7 @@ Projecto1/
 
 ---
 
-## 🛠️ Execução no Ambiente Local (Windows)
+## Execução no Ambiente Local (Windows)
 
 ### Opção A: Executar a Nova Arquitetura (FastAPI + Frontend)
 1. Instale as dependências:
